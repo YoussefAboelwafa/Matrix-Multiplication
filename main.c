@@ -1,87 +1,91 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
-#define MAX 150
+#define MAX 20
 
 FILE *file_a;
 FILE *file_b;
-int row_a = 3;
-int col_a = 5;
-int row_b = 3;
-int col_b = 3;
+
+int row_a;
+int col_a;
+int mat_a[MAX][MAX];
+
+int row_b;
+int col_b;
+int mat_b[MAX][MAX];
+
 char line_a[MAX];
 char line_b[MAX];
-int array_a[MAX][MAX];
-int array_b[MAX][MAX];
 
-char *extract_after_equal(char *input)
-{
-    char *equal_ptr = strstr(input, "="); // find first occurrence of '='
-    if (equal_ptr == NULL)
-    {
-        printf("Equal sign not found in input string\n");
-        return NULL;
-    }
 
-    // extract substring after '='
-    equal_ptr++; // move pointer past '=' character
-    int len = strlen(equal_ptr);
-    char *output = malloc(len + 1);  // allocate memory for output string
-    strncpy(output, equal_ptr, len); // copy substring to output string
-    output[len] = '\0';              // add null terminator to output string
-    return output;
-}
+
 
 void read_inputs()
 {
     // READ the first file
     file_a = fopen("a.txt", "r");
+    // ERROR if file is empty
+    if (file_a == NULL)
+    {
+        printf("Error opening file\n");
+        exit(EXIT_FAILURE);
+    }
     fgets(line_a, MAX, file_a);
+    // line_a contains the row and col of the first matrix
+    sscanf(line_a, "row=%d col=%d", &row_a, &col_a);
+
     for (int i = 0; i < row_a; i++)
     {
         for (int j = 0; j < col_a; j++)
         {
-            fscanf(file_a, "%d", &array_a[i][j]);
+            fscanf(file_a, "%d", &mat_a[i][j]);
         }
     }
     fclose(file_a);
 
+    //------------------------------------------------------------
+
     // READ the second file
     file_b = fopen("b.txt", "r");
+    // ERROR if file is empty
+    if (file_b == NULL)
+    {
+        printf("Error opening file\n");
+        exit(EXIT_FAILURE);
+    }
     fgets(line_b, MAX, file_b);
+    // line_b contains the row and col of the second matrix
+    sscanf(line_b, "row=%d col=%d", &row_b, &col_b);
+
     for (int i = 0; i < row_b; i++)
     {
         for (int j = 0; j < col_b; j++)
         {
-            fscanf(file_b, "%d", &array_b[i][j]);
+            fscanf(file_b, "%d", &mat_b[i][j]);
         }
     }
     fclose(file_b);
 }
 
+void print_array(int row, int col, int arr[][MAX])
+{
+    for (int i = 0; i < row; i++)
+    {
+        for (int j = 0; j < col; j++)
+        {
+            printf("%d ", arr[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+}
+
 int main()
 {
     read_inputs();
-    printf("%s", line_a);
-    for (int i = 0; i < row_a; i++)
-    {
-        for (int j = 0; j < col_a; j++)
-        {
-            printf("%d ", array_a[i][j]);
-        }
-        printf("\n");
-    }
-
-    printf("%s", line_b);
-    for (int i = 0; i < row_b; i++)
-    {
-        for (int j = 0; j < col_b; j++)
-        {
-            printf("%d ", array_b[i][j]);
-        }
-        printf("\n");
-    }
-
+    print_array(row_a,col_a,mat_a);
+    print_array(row_b,col_b,mat_b);
     return 0;
 }
