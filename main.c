@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <errno.h>
 
 #define MAX 20
 
@@ -19,13 +20,14 @@ int mat_b[MAX][MAX];
 char line_a[MAX];
 char line_b[MAX];
 
-
-
+char *input1;
+char *input2;
+char *output;
 
 void read_inputs()
 {
     // READ the first file
-    file_a = fopen("a.txt", "r");
+    file_a = fopen(input1, "r");
     // ERROR if file is empty
     if (file_a == NULL)
     {
@@ -48,7 +50,7 @@ void read_inputs()
     //------------------------------------------------------------
 
     // READ the second file
-    file_b = fopen("b.txt", "r");
+    file_b = fopen(input2, "r");
     // ERROR if file is empty
     if (file_b == NULL)
     {
@@ -69,6 +71,10 @@ void read_inputs()
     fclose(file_b);
 }
 
+void write_output()
+{
+}
+
 void print_array(int row, int col, int arr[][MAX])
 {
     for (int i = 0; i < row; i++)
@@ -82,10 +88,42 @@ void print_array(int row, int col, int arr[][MAX])
     printf("\n");
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    // Check arguments
+    if (argc != 4 && argc != 1)
+    {
+        errno = ENOENT;
+        perror("ERROR:Wrong input parameters");
+        exit(EXIT_FAILURE);
+    }
+
+    // Default arguments
+    if (argc == 1)
+    {
+        input1 = "a.txt";
+        input2 = "b.txt";
+        output = "c.txt";
+    }
+
+    // Custom arguments
+    if (argc == 4)
+    {
+        input1 = malloc(strlen(argv[1]) + 5);
+        strcpy(input1, argv[1]); // Copy the original string to the new string
+        strcat(input1, ".txt");  // Concatenate the extension to the new string
+
+        input2 = malloc(strlen(argv[2]) + 5);
+        strcpy(input2, argv[2]); // Copy the original string to the new string
+        strcat(input2, ".txt");  // Concatenate the extension to the new string
+
+        output = malloc(strlen(argv[3]) + 5);
+        strcpy(output, argv[3]); // Copy the original string to the new string
+        strcat(output, ".txt");  // Concatenate the extension to the new string
+    }
+
     read_inputs();
-    print_array(row_a,col_a,mat_a);
-    print_array(row_b,col_b,mat_b);
+    print_array(row_a, col_a, mat_a);
+    print_array(row_b, col_b, mat_b);
     return 0;
 }
