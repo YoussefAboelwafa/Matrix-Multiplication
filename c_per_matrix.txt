@@ -1,0 +1,5 @@
+Method: A thread per matrix
+row=3 col=5
+24 30 36 30 30 
+24 30 36 30 30 
+24 30 36 30 30 

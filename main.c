@@ -3,11 +3,20 @@
 #include <string.h>
 #include <sys/time.h>
 #include <errno.h>
+#include <pthread.h>
 
 #define MAX 20
 
+#define BRED "\e[1;31m"
+#define BGRN "\e[1;32m"
+#define BYEL "\e[1;33m"
+#define reset "\e[0m"
+
 FILE *file_a;
 FILE *file_b;
+FILE *file_c_matrix;
+FILE *file_c_row;
+FILE *file_c_element;
 
 int row_a;
 int col_a;
@@ -20,9 +29,19 @@ int mat_b[MAX][MAX];
 char line_a[MAX];
 char line_b[MAX];
 
+int row_c;
+int col_c;
+int mat_c_per_matrix[MAX][MAX];
+int mat_c_per_row[MAX][MAX];
+int mat_c_per_element[MAX][MAX];
+
 char *input1;
 char *input2;
-char *output;
+char *output_matrix;
+char *output_row;
+char *output_element;
+
+struct timeval stop1, stop2, stop3, start1, start2, start3;
 
 void read_inputs()
 {
@@ -71,7 +90,38 @@ void read_inputs()
     fclose(file_b);
 }
 
-void write_output()
+void *matrix_mult(void *arg)
+{
+    int sum = 0;
+    for (int i = 0; i < row_c; i++)
+    {
+        for (int j = 0; j < col_c; j++)
+        {
+            for (int k = 0; k < col_a; k++)
+            {
+                sum += mat_a[i][k] * mat_b[k][j];
+            }
+            mat_c_per_matrix[i][j] = sum;
+            sum = 0;
+        }
+    }
+    file_c_matrix = fopen(output_matrix, "w");
+    fprintf(file_c_matrix, "Method: A thread per matrix\n");
+    fprintf(file_c_matrix, "row=%d col=%d\n", row_c, col_c);
+
+    for (int i = 0; i < row_c; i++)
+    {
+        for (int j = 0; j < col_c; j++)
+        {
+            fprintf(file_c_matrix, "%d ", mat_c_per_matrix[i][j]);
+        }
+        fprintf(file_c_matrix, "\n");
+    }
+    fclose(file_c_matrix);
+    return NULL;
+}
+
+void *row_mult(void *arg)
 {
 }
 
@@ -103,7 +153,9 @@ int main(int argc, char *argv[])
     {
         input1 = "a.txt";
         input2 = "b.txt";
-        output = "c.txt";
+        output_matrix = "c_per_matrix.txt";
+        output_row = "c_per_row.txt";
+        output_element = "c_per_element.txt";
     }
 
     // Custom arguments
@@ -117,13 +169,49 @@ int main(int argc, char *argv[])
         strcpy(input2, argv[2]); // Copy the original string to the new string
         strcat(input2, ".txt");  // Concatenate the extension to the new string
 
-        output = malloc(strlen(argv[3]) + 5);
-        strcpy(output, argv[3]); // Copy the original string to the new string
-        strcat(output, ".txt");  // Concatenate the extension to the new string
+        output_matrix = malloc(strlen(argv[3]) + 15);
+        strcpy(output_matrix, argv[3]);           // Copy the original string to the new string
+        strcat(output_matrix, "_per_matrix.txt"); // Concatenate the extension to the new string
+
+        output_row = malloc(strlen(argv[3]) + 15);
+        strcpy(output_row, argv[3]);        // Copy the original string to the new string
+        strcat(output_row, "_per_row.txt"); // Concatenate the extension to the new string
+
+        output_element = malloc(strlen(argv[3]) + 15);
+        strcpy(output_element, argv[3]);            // Copy the original string to the new string
+        strcat(output_element, "_per_element.txt"); // Concatenate the extension to the new string
     }
 
     read_inputs();
+
+    // check if valid dimensions
+    if (col_a != row_b)
+    {
+        perror("ERROR in matrices dimensions");
+        exit(EXIT_FAILURE);
+    }
+    row_c = row_a;
+    col_c = col_b;
+
+    pthread_t t_matrix;
+    pthread_t t_row[row_c];
+    pthread_t t_element[row_c * col_c];
+
+    gettimeofday(&start1, NULL); // start checking matrix time
+    pthread_create(&t_matrix, NULL, &matrix_mult, NULL);
+    pthread_join(t_matrix, NULL);
+    gettimeofday(&stop1, NULL); // end checking matrix time
+
     print_array(row_a, col_a, mat_a);
     print_array(row_b, col_b, mat_b);
+    print_array(row_c, col_c, mat_c_per_matrix);
+
+    printf(BGRN "Number of threads taken for multiplication per matrix: (%d)\n" reset, 1);
+    printf(BYEL "Number of threads taken for multiplication per row: (%d)\n" reset, row_c);
+    printf(BRED "Number of threads taken for multiplication per element: (%d)\n" reset, row_c * col_c);
+    printf(BGRN "\nMicroseconds taken for multiplication per matrix: (%lu)\n" reset, stop1.tv_usec - start1.tv_usec);
+    printf(BYEL "Microseconds taken for multiplication per row: (%lu)\n" reset, stop2.tv_usec - start2.tv_usec);
+    printf(BRED "Microseconds taken for multiplication per element: (%lu)\n\n" reset, stop3.tv_usec - start3.tv_usec);
+
     return 0;
 }
