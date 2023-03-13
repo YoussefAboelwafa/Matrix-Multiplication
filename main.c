@@ -156,12 +156,23 @@ int main(int argc, char *argv[])
 
     // Default arguments
     if (argc == 1)
-    {
-        input1 = "a.txt";
-        input2 = "b.txt";
-        output_matrix = "c_per_matrix.txt";
-        output_row = "c_per_row.txt";
-        output_element = "c_per_element.txt";
+    {   
+        input1 = malloc(7);
+        strcpy(input1, "a.txt");
+
+        input2 = malloc(7);
+        strcpy(input2, "b.txt");
+
+        output_matrix = malloc(17);
+        strcpy(output_matrix, "c_per_matrix.txt");
+
+        output_row = malloc(14);
+        strcpy(output_row, "c_per_row.txt"); 
+
+        output_element = malloc(17);
+        
+        strcpy(output_element, "c_per_element.txt");
+
     }
 
     // Custom arguments
@@ -225,6 +236,7 @@ int main(int argc, char *argv[])
         }
     }
     fclose(file_c_matrix);
+    
     gettimeofday(&stop1, NULL); // end checking matrix time
     //-------------------------------------------------------------------------------
     // row threads
@@ -256,6 +268,7 @@ int main(int argc, char *argv[])
         }
     }
     fclose(file_c_row);
+    
     gettimeofday(&stop2, NULL); // end checking matrix time
     //-------------------------------------------------------------------------------
     // elements threads
@@ -294,9 +307,11 @@ int main(int argc, char *argv[])
         }
     }
     fclose(file_c_element);
+  
     gettimeofday(&stop3, NULL); // end checking matrix time
     //-------------------------------------------------------------------------------
-
+    free(input1);
+    free(input2);
     printf(BGRN "Number of threads taken for multiplication per matrix: (%d)\n" reset, 1);
     printf(BYEL "Number of threads taken for multiplication per row: (%d)\n" reset, row_c);
     printf(BRED "Number of threads taken for multiplication per element: (%d)\n" reset, row_c * col_c);
