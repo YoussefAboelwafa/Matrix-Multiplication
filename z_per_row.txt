@@ -1,0 +1,7 @@
+Method: A thread per row
+row=5 col=3
+6 12 18 
+6 12 18 
+6 12 18 
+6 12 18 
+6 12 18 

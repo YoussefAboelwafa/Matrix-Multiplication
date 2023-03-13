@@ -21,7 +21,6 @@ FILE *file_c_element;
 int row_a;
 int col_a;
 int mat_a[MAX][MAX];
-
 int row_b;
 int col_b;
 int mat_b[MAX][MAX];
@@ -42,6 +41,12 @@ char *output_row;
 char *output_element;
 
 struct timeval stop1, stop2, stop3, start1, start2, start3;
+
+struct Data
+{
+    int row;
+    int col;
+};
 
 void read_inputs()
 {
@@ -136,7 +141,7 @@ void *row_mult(void *arg)
         }
         mat_c_per_row[row_number][i] = sum;
     }
-    //write in row file
+    // write in row file
     file_c_row = fopen(output_row, "w");
     fprintf(file_c_row, "Method: A thread per row\n");
     fprintf(file_c_row, "row=%d col=%d\n", row_c, col_c);
@@ -153,6 +158,34 @@ void *row_mult(void *arg)
     return NULL;
 }
 
+void *element_mult(void *arg)
+{
+    struct Data *my_data = (struct Data *)arg;
+    int row = my_data->row;
+    int col = my_data->col;
+    int sum = 0;
+    for (int i = 0; i < col_a; i++)
+    {
+        sum += mat_a[row][i] * mat_b[i][col];
+    }
+    mat_c_per_element[row][col] = sum;
+
+    // write in element file
+    file_c_element = fopen(output_element, "w");
+    fprintf(file_c_element, "Method: A thread per element\n");
+    fprintf(file_c_element, "row=%d col=%d\n", row_c, col_c);
+
+    for (int i = 0; i < row_c; i++)
+    {
+        for (int j = 0; j < col_c; j++)
+        {
+            fprintf(file_c_element, "%d ", mat_c_per_element[i][j]);
+        }
+        fprintf(file_c_element, "\n");
+    }
+    fclose(file_c_element);
+    return NULL;
+}
 void print_array(int row, int col, int arr[][MAX])
 {
     for (int i = 0; i < row; i++)
@@ -246,13 +279,26 @@ int main(int argc, char *argv[])
     gettimeofday(&stop2, NULL); // end checking matrix time
 
     // elements threads
-    //  gettimeofday(&start3, NULL); // start checking matrix time
-    //  for (int i = 0; i < row_c; i++)
-    //  {
+    gettimeofday(&start3, NULL); // start checking matrix time
 
-    // }
+    int k = 0;
+    for (int i = 0; i < row_c; i++)
+    {
+        for (int j = 0; j < col_c; j++)
+        {
+            struct Data *data = malloc(sizeof(struct Data));
+            data->row = i;
+            data->col = j;
+            pthread_create(&t_elements[k], NULL, &element_mult, (void *)data);
+            k++;
+        }
+    }
+    for (int i = 0; i < (row_c * col_c); i++)
+    {
+        pthread_join(t_elements[i], NULL);
+    }
 
-    // gettimeofday(&stop3, NULL); // end checking matrix time
+    gettimeofday(&stop3, NULL); // end checking matrix time
 
     print_array(row_c, col_c, mat_c_per_matrix);
     print_array(row_c, col_c, mat_c_per_row);
