@@ -110,20 +110,6 @@ void *matrix_mult(void *arg)
             sum = 0;
         }
     }
-    // write in matrix file
-    file_c_matrix = fopen(output_matrix, "w");
-    fprintf(file_c_matrix, "Method: A thread per matrix\n");
-    fprintf(file_c_matrix, "row=%d col=%d\n", row_c, col_c);
-
-    for (int i = 0; i < row_c; i++)
-    {
-        for (int j = 0; j < col_c; j++)
-        {
-            fprintf(file_c_matrix, "%d ", mat_c_per_matrix[i][j]);
-        }
-        fprintf(file_c_matrix, "\n");
-    }
-    fclose(file_c_matrix);
     return NULL;
 }
 
@@ -141,20 +127,6 @@ void *row_mult(void *arg)
         }
         mat_c_per_row[row_number][i] = sum;
     }
-    // write in row file
-    file_c_row = fopen(output_row, "w");
-    fprintf(file_c_row, "Method: A thread per row\n");
-    fprintf(file_c_row, "row=%d col=%d\n", row_c, col_c);
-
-    for (int i = 0; i < row_c; i++)
-    {
-        for (int j = 0; j < col_c; j++)
-        {
-            fprintf(file_c_row, "%d ", mat_c_per_row[i][j]);
-        }
-        fprintf(file_c_row, "\n");
-    }
-    fclose(file_c_row);
     return NULL;
 }
 
@@ -169,21 +141,6 @@ void *element_mult(void *arg)
         sum += mat_a[row][i] * mat_b[i][col];
     }
     mat_c_per_element[row][col] = sum;
-
-    // write in element file
-    file_c_element = fopen(output_element, "w");
-    fprintf(file_c_element, "Method: A thread per element\n");
-    fprintf(file_c_element, "row=%d col=%d\n", row_c, col_c);
-
-    for (int i = 0; i < row_c; i++)
-    {
-        for (int j = 0; j < col_c; j++)
-        {
-            fprintf(file_c_element, "%d ", mat_c_per_element[i][j]);
-        }
-        fprintf(file_c_element, "\n");
-    }
-    fclose(file_c_element);
     return NULL;
 }
 void print_array(int row, int col, int arr[][MAX])
@@ -234,11 +191,11 @@ int main(int argc, char *argv[])
         strcpy(output_matrix, argv[3]);           // Copy the original string to the new string
         strcat(output_matrix, "_per_matrix.txt"); // Concatenate the extension to the new string
 
-        output_row = malloc(strlen(argv[3]) + 16);
+        output_row = malloc(strlen(argv[3]) + 13);
         strcpy(output_row, argv[3]);        // Copy the original string to the new string
         strcat(output_row, "_per_row.txt"); // Concatenate the extension to the new string
 
-        output_element = malloc(strlen(argv[3]) + 16);
+        output_element = malloc(strlen(argv[3]) + 17);
         strcpy(output_element, argv[3]);            // Copy the original string to the new string
         strcat(output_element, "_per_element.txt"); // Concatenate the extension to the new string
     }
@@ -258,12 +215,27 @@ int main(int argc, char *argv[])
     pthread_t t_matrix;
     pthread_t t_rows[row_c];
     pthread_t t_elements[row_c * col_c];
-
+    //-------------------------------------------------------------------------------
     // matrix thread
     gettimeofday(&start1, NULL); // start checking matrix time
     pthread_create(&t_matrix, NULL, &matrix_mult, NULL);
     pthread_join(t_matrix, NULL);
+    // write in matrix file
+    file_c_matrix = fopen(output_matrix, "w");
+    fprintf(file_c_matrix, "Method: A thread per matrix\n");
+    fprintf(file_c_matrix, "row=%d col=%d\n", row_c, col_c);
+
+    for (int i = 0; i < row_c; i++)
+    {
+        for (int j = 0; j < col_c; j++)
+        {
+            fprintf(file_c_matrix, "%d ", mat_c_per_matrix[i][j]);
+        }
+        fprintf(file_c_matrix, "\n");
+    }
+    fclose(file_c_matrix);
     gettimeofday(&stop1, NULL); // end checking matrix time
+    //-------------------------------------------------------------------------------
     // row threads
     gettimeofday(&start2, NULL); // start checking matrix time
     int row_number[row_c];
@@ -276,8 +248,22 @@ int main(int argc, char *argv[])
     {
         pthread_join(t_rows[i], NULL);
     }
-    gettimeofday(&stop2, NULL); // end checking matrix time
+    // write in row file
+    file_c_row = fopen(output_row, "w");
+    fprintf(file_c_row, "Method: A thread per row\n");
+    fprintf(file_c_row, "row=%d col=%d\n", row_c, col_c);
 
+    for (int i = 0; i < row_c; i++)
+    {
+        for (int j = 0; j < col_c; j++)
+        {
+            fprintf(file_c_row, "%d ", mat_c_per_row[i][j]);
+        }
+        fprintf(file_c_row, "\n");
+    }
+    fclose(file_c_row);
+    gettimeofday(&stop2, NULL); // end checking matrix time
+    //-------------------------------------------------------------------------------
     // elements threads
     gettimeofday(&start3, NULL); // start checking matrix time
 
@@ -297,9 +283,22 @@ int main(int argc, char *argv[])
     {
         pthread_join(t_elements[i], NULL);
     }
+    // write in element file
+    file_c_element = fopen(output_element, "w");
+    fprintf(file_c_element, "Method: A thread per element\n");
+    fprintf(file_c_element, "row=%d col=%d\n", row_c, col_c);
 
+    for (int i = 0; i < row_c; i++)
+    {
+        for (int j = 0; j < col_c; j++)
+        {
+            fprintf(file_c_element, "%d ", mat_c_per_element[i][j]);
+        }
+        fprintf(file_c_element, "\n");
+    }
+    fclose(file_c_element);
     gettimeofday(&stop3, NULL); // end checking matrix time
-
+    //-------------------------------------------------------------------------------
     print_array(row_c, col_c, mat_c_per_matrix);
     print_array(row_c, col_c, mat_c_per_row);
     print_array(row_c, col_c, mat_c_per_element);
