@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
         }
     }
     fclose(file_c_matrix);
-    
+    free(output_matrix);
     gettimeofday(&stop1, NULL); // end checking matrix time
     //-------------------------------------------------------------------------------
     // row threads
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
         }
     }
     fclose(file_c_row);
-    
+    free(output_row);
     gettimeofday(&stop2, NULL); // end checking matrix time
     //-------------------------------------------------------------------------------
     // elements threads
@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
         }
     }
     fclose(file_c_element);
-  
+    free(output_element);
     gettimeofday(&stop3, NULL); // end checking matrix time
     //-------------------------------------------------------------------------------
     free(input1);
