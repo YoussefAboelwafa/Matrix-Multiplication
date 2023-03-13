@@ -143,18 +143,6 @@ void *element_mult(void *arg)
     mat_c_per_element[row][col] = sum;
     return NULL;
 }
-void print_array(int row, int col, int arr[][MAX])
-{
-    for (int i = 0; i < row; i++)
-    {
-        for (int j = 0; j < col; j++)
-        {
-            printf("%d ", arr[i][j]);
-        }
-        printf("\n");
-    }
-    printf("\n");
-}
 
 int main(int argc, char *argv[])
 {
@@ -231,7 +219,10 @@ int main(int argc, char *argv[])
         {
             fprintf(file_c_matrix, "%d ", mat_c_per_matrix[i][j]);
         }
-        fprintf(file_c_matrix, "\n");
+        if (i != row_c - 1)
+        {
+            fprintf(file_c_matrix, "\n");
+        }
     }
     fclose(file_c_matrix);
     gettimeofday(&stop1, NULL); // end checking matrix time
@@ -259,7 +250,10 @@ int main(int argc, char *argv[])
         {
             fprintf(file_c_row, "%d ", mat_c_per_row[i][j]);
         }
-        fprintf(file_c_row, "\n");
+        if (i != row_c - 1)
+        {
+            fprintf(file_c_row, "\n");
+        }
     }
     fclose(file_c_row);
     gettimeofday(&stop2, NULL); // end checking matrix time
@@ -294,14 +288,14 @@ int main(int argc, char *argv[])
         {
             fprintf(file_c_element, "%d ", mat_c_per_element[i][j]);
         }
-        fprintf(file_c_element, "\n");
+        if (i != row_c - 1)
+        {
+            fprintf(file_c_element, "\n");
+        }
     }
     fclose(file_c_element);
     gettimeofday(&stop3, NULL); // end checking matrix time
     //-------------------------------------------------------------------------------
-    print_array(row_c, col_c, mat_c_per_matrix);
-    print_array(row_c, col_c, mat_c_per_row);
-    print_array(row_c, col_c, mat_c_per_element);
 
     printf(BGRN "Number of threads taken for multiplication per matrix: (%d)\n" reset, 1);
     printf(BYEL "Number of threads taken for multiplication per row: (%d)\n" reset, row_c);
